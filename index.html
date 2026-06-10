@@ -528,26 +528,26 @@
         '<div><label class="req">Apellido paterno</label><input type="text" name="apPaterno" value="'+esc(d.apPaterno)+'"></div>'+
       '</div>'+
       '<div class="row">'+
-        '<div><label>Apellido materno</label><input type="text" name="apMaterno" value="'+esc(d.apMaterno)+'"></div>'+
+        '<div><label class="req">Apellido materno</label><input type="text" name="apMaterno" value="'+esc(d.apMaterno)+'"></div>'+
         '<div><label>CURP</label><input type="text" name="curp" maxlength="18" value="'+esc(d.curp)+'" style="text-transform:uppercase"></div>'+
       '</div>'+
-      '<div class="field"><label>Ocupación</label>'+selectCat('ocupacion', OCUPACIONES, d.ocupacion, '— Selecciona ocupación —')+'</div>'+
+      '<div class="field"><label class="req">Ocupación</label>'+selectCat('ocupacion', OCUPACIONES, d.ocupacion, '— Selecciona ocupación —')+'</div>'+
       '<div class="row">'+
-        '<div><label>Edad</label><input type="number" name="edad" min="0" max="120" value="'+esc(d.edad)+'"></div>'+
-        '<div><label>Sexo</label><select name="sexo"><option value="">—</option>'+
+        '<div><label class="req">Edad</label><input type="number" name="edad" min="0" max="120" value="'+esc(d.edad)+'"></div>'+
+        '<div><label class="req">Sexo</label><select name="sexo"><option value="">—</option>'+
           '<option '+(d.sexo==='M'?'selected':'')+'>M</option>'+
           '<option '+(d.sexo==='F'?'selected':'')+'>F</option>'+
           '<option '+(d.sexo==='Otro'?'selected':'')+'>Otro</option></select></div>'+
       '</div>'
     ) + card('🏠 Domicilio',
-      '<div class="field"><label>Domicilio (calle y número)</label><input type="text" name="domicilio" value="'+esc(d.domicilio)+'"></div>'+
+      '<div class="field"><label class="req">Domicilio (calle y número)</label><input type="text" name="domicilio" value="'+esc(d.domicilio)+'"></div>'+
       '<div class="row">'+
         '<div><label>No. interior</label><input type="text" name="noInt" value="'+esc(d.noInt)+'"></div>'+
-        '<div><label>C.P.</label><input type="text" name="cp" maxlength="5" value="'+esc(d.cp)+'"></div>'+
+        '<div><label class="req">C.P.</label><input type="text" name="cp" maxlength="5" value="'+esc(d.cp)+'"></div>'+
       '</div>'+
       '<div class="row">'+
-        '<div><label>Localidad</label><input type="text" name="localidad" value="'+esc(d.localidad)+'"></div>'+
-        '<div><label>Colonia</label><input type="text" name="colonia" value="'+esc(d.colonia)+'"></div>'+
+        '<div><label class="req">Localidad</label><input type="text" name="localidad" value="'+esc(d.localidad)+'"></div>'+
+        '<div><label class="req">Colonia</label><input type="text" name="colonia" value="'+esc(d.colonia)+'"></div>'+
       '</div>'+
       '<div class="row">'+
         '<div><label>Área</label><input type="text" name="area" value="'+esc(d.area)+'"></div>'+
@@ -556,7 +556,7 @@
       '<div class="field"><label class="req">Municipio</label>'+selectCat('municipio', MUNICIPIOS, d.municipio, '— Selecciona municipio —')+'</div>'+
       '<div class="row">'+
         '<div><label>Teléfono fijo</label><input type="tel" name="telFijo" value="'+esc(d.telFijo)+'"></div>'+
-        '<div><label>Celular</label><input type="tel" name="celular" value="'+esc(d.celular)+'"></div>'+
+        '<div><label class="req">Celular</label><input type="tel" name="celular" value="'+esc(d.celular)+'"></div>'+
       '</div>'
     );
   }
@@ -579,15 +579,15 @@
     }
     host.innerHTML = card('👨‍👩‍👧 Datos del hogar',
       '<div class="row">'+
-        '<div><label>Personas que viven en el hogar</label><input type="number" name="personasHogar" min="0" value="'+esc(d.personasHogar)+'"></div>'+
-        '<div><label>Menores de 18</label><input type="number" name="menores18" min="0" value="'+esc(d.menores18)+'"></div>'+
-        '<div><label>Adultos 60+</label><input type="number" name="adultos60" min="0" value="'+esc(d.adultos60)+'"></div>'+
+        '<div><label class="req">Personas que viven en el hogar</label><input type="number" name="personasHogar" min="0" value="'+esc(d.personasHogar)+'"></div>'+
+        '<div><label class="req">Menores de 18</label><input type="number" name="menores18" min="0" value="'+esc(d.menores18)+'"></div>'+
+        '<div><label class="req">Adultos 60+</label><input type="number" name="adultos60" min="0" value="'+esc(d.adultos60)+'"></div>'+
       '</div>'+
       '<small class="help">Captura información de los 3 primeros integrantes:</small>'+
       '<div style="margin-top:10px">'+intHTML+'</div>'+
-      '<div class="field" style="margin-top:14px"><label>¿Cuántas personas aportan económicamente?</label>'+
+      '<div class="field" style="margin-top:14px"><label class="req">¿Cuántas personas aportan económicamente?</label>'+
         '<input type="number" name="aportantes" min="0" value="'+esc(d.aportantes)+'"></div>'+
-      '<div class="field"><label>¿Alguna persona tiene discapacidad?</label>'+radioG('discapacidad', ['Sí','No','Prefiero no decir'], d.discapacidad)+'</div>'+
+      '<div class="field"><label class="req">¿Alguna persona tiene discapacidad?</label>'+radioG('discapacidad', ['Sí','No','Prefiero no decir'], d.discapacidad)+'</div>'+
       '<div class="field"><label>En caso afirmativo, ¿cuál?</label>'+
         '<input type="text" name="tipoDiscapacidad" value="'+esc(d.tipoDiscapacidad)+'"></div>'
     );
@@ -600,7 +600,7 @@
       '<div class="field"><label class="req">Ingreso mensual aproximado</label>'+
         radioG('ingresoMensual', ['Menos de $5,000','$5,000 – $10,000','$10,000 – $15,000','Más de $15,000','No especificó'], d.ingresoMensual)+
       '</div>'+
-      '<div class="field"><label>¿Algún integrante perdió empleo recientemente?</label>'+
+      '<div class="field"><label class="req">¿Algún integrante perdió empleo recientemente?</label>'+
         radioG('perdioEmpleo', ['Sí','No'], d.perdioEmpleo)+
       '</div>'
     );
@@ -610,13 +610,13 @@
   function renderStep4(host){
     const d = state.data;
     host.innerHTML = card('🏘 Condiciones de vivienda',
-      '<div class="field"><label>Servicios públicos con los que cuenta</label>'+
+      '<div class="field"><label class="req">Servicios públicos con los que cuenta</label>'+
         checkG('serviciosPublicos', ['Agua','Drenaje','Electricidad','Internet','Ninguno'], d.serviciosPublicos)+'</div>'+
-      '<div class="field"><label>Tipo de vivienda</label>'+radioG('tipoVivienda', ['Propia','Rentada','Prestada'], d.tipoVivienda)+'</div>'+
-      '<div class="field"><label>Material predominante del PISO</label>'+
+      '<div class="field"><label class="req">Tipo de vivienda</label>'+radioG('tipoVivienda', ['Propia','Rentada','Prestada'], d.tipoVivienda)+'</div>'+
+      '<div class="field"><label class="req">Material predominante del PISO</label>'+
         radioG('materialPiso', ['Tierra','Cemento','Otro'], d.materialPiso)+
         '<input type="text" name="materialPisoOtro" placeholder="Especifique si es \'Otro\'" value="'+esc(d.materialPisoOtro)+'" style="margin-top:6px"></div>'+
-      '<div class="field"><label>Material predominante del TECHO</label>'+
+      '<div class="field"><label class="req">Material predominante del TECHO</label>'+
         radioG('materialTecho', ['Lámina','Concreto','Otro'], d.materialTecho)+
         '<input type="text" name="materialTechoOtro" placeholder="Especifique si es \'Otro\'" value="'+esc(d.materialTechoOtro)+'" style="margin-top:6px"></div>'
     );
@@ -626,14 +626,14 @@
   function renderStep5(host){
     const d = state.data;
     host.innerHTML = card('🚌 Transporte',
-      '<div class="field"><label>Medio de transporte que generalmente utiliza</label>'+
+      '<div class="field"><label class="req">Medio de transporte que generalmente utiliza</label>'+
         radioG('medioTransporte', ['Vehículo propio','Transporte público','Taxi / Servicio privado','Motocicleta','Otro'], d.medioTransporte)+
         '<input type="text" name="medioTransporteOtro" placeholder="Especifique \'Otro\'" value="'+esc(d.medioTransporteOtro)+'" style="margin-top:6px"></div>'+
-      '<div class="field"><label>¿Alguna persona recibe apoyo al transporte público?</label>'+
+      '<div class="field"><label class="req">¿Alguna persona recibe apoyo al transporte público?</label>'+
         radioG('apoyoTransporte', ['Sí','No'], d.apoyoTransporte)+'</div>'+
       '<div class="field"><label>En caso afirmativo, ¿qué tipo de apoyo? (puede marcar varias)</label>'+
         checkG('apoyoTransporteTipo', ['Estudiante','Discapacidad','Maestros','Tercera edad','Familiares de personas desaparecidas','Mujeres','Niñas y niños'], d.apoyoTransporteTipo)+'</div>'+
-      '<div class="field"><label>De utilizar transporte público, ¿con qué frecuencia?</label>'+
+      '<div class="field"><label class="req">De utilizar transporte público, ¿con qué frecuencia?</label>'+
         radioG('frecuenciaTransporte', ['Diario','3 a 4 veces por semana','1 o 2 veces por semana'], d.frecuenciaTransporte)+'</div>'
     );
   }
@@ -642,15 +642,15 @@
   function renderStep6(host){
     const d = state.data;
     host.innerHTML = card('📚 Educación',
-      '<div class="field"><label>Nivel máximo de estudios de la persona jefa de familia</label>'+
+      '<div class="field"><label class="req">Nivel máximo de estudios de la persona jefa de familia</label>'+
         radioG('nivelEstudios', ['Sin estudios','Primaria','Secundaria','Preparatoria','Superior'], d.nivelEstudios)+'</div>'+
-      '<div class="field"><label>¿Hay niños o jóvenes que no asisten a la escuela?</label>'+
+      '<div class="field"><label class="req">¿Hay niños o jóvenes que no asisten a la escuela?</label>'+
         radioG('ninosNoEscuela', ['Sí','No'], d.ninosNoEscuela)+'</div>'+
-      '<div class="field"><label>¿Han recibido el apoyo de mochilas, uniformes y útiles escolares gratuitos del Gobierno del Estado?</label>'+
+      '<div class="field"><label class="req">¿Han recibido el apoyo de mochilas, uniformes y útiles escolares gratuitos del Gobierno del Estado?</label>'+
         radioG('apoyoEscolar', ['Sí','No'], d.apoyoEscolar)+'</div>'+
-      '<div class="field"><label>¿Cómo calificaría las condiciones de la escuela a la que asisten sus hijos?</label>'+
+      '<div class="field"><label class="req">¿Cómo calificaría las condiciones de la escuela a la que asisten sus hijos?</label>'+
         radioG('condicionEscuela', ['Buena','Regular','Mala','No aplica'], d.condicionEscuela)+'</div>'+
-      '<div class="field"><label>¿Hay estancias infantiles en su municipio?</label>'+
+      '<div class="field"><label class="req">¿Hay estancias infantiles en su municipio?</label>'+
         radioG('estanciasInfantiles', ['Sí','No','No sabe'], d.estanciasInfantiles)+'</div>'
     );
   }
@@ -659,7 +659,7 @@
   function renderStep7(host){
     const d = state.data;
     host.innerHTML = card('🏥 Salud',
-      '<div class="field"><label>¿Cuenta con servicio de salud público?</label>'+
+      '<div class="field"><label class="req">¿Cuenta con servicio de salud público?</label>'+
         radioG('servicioSalud', ['Sí','No'], d.servicioSalud)+'</div>'+
       '<div class="field"><label>En caso afirmativo, ¿cuál? (puede marcar varias)</label>'+
         checkG('servicioSaludTipo', ['IMSS','ISSSTE','INSABI / Bienestar','Salud Jalisco','Otro'], d.servicioSaludTipo)+
@@ -668,13 +668,13 @@
         radioG('calificacionSalud', ['Bueno','Regular','Malo'], d.calificacionSalud)+'</div>'+
       '<div class="field"><label>¿Le surten todo su medicamento?</label>'+
         radioG('surteMedicamento', ['Sí','No'], d.surteMedicamento)+'</div>'+
-      '<div class="field"><label>¿Hay un hospital, clínica o centro de salud cerca de su domicilio?</label>'+
+      '<div class="field"><label class="req">¿Hay un hospital, clínica o centro de salud cerca de su domicilio?</label>'+
         radioG('hospitalCerca', ['Sí','No','No sabe'], d.hospitalCerca)+'</div>'+
-      '<div class="field"><label>¿Hay personas con enfermedades crónicas en el hogar?</label>'+
+      '<div class="field"><label class="req">¿Hay personas con enfermedades crónicas en el hogar?</label>'+
         radioG('enfCronicas', ['Sí','No'], d.enfCronicas)+'</div>'+
-      '<div class="field"><label>¿Alguna persona ha presentado problemas emocionales (tristeza, ansiedad, problemas para dormir o convivir)?</label>'+
+      '<div class="field"><label class="req">¿Alguna persona ha presentado problemas emocionales (tristeza, ansiedad, problemas para dormir o convivir)?</label>'+
         radioG('problemasEmocionales', ['Sí','No','No sabe / Prefiero no decir'], d.problemasEmocionales)+'</div>'+
-      '<div class="field"><label>¿Alguien recibe atención psicológica/psiquiátrica o cree que la necesita y no la recibe?</label>'+
+      '<div class="field"><label class="req">¿Alguien recibe atención psicológica/psiquiátrica o cree que la necesita y no la recibe?</label>'+
         radioG('atencionPsicologica', ['Sí (la recibe)','Sí (la necesita y no la recibe)','No','No sabe / Prefiero no decir'], d.atencionPsicologica)+'</div>'
     );
   }
@@ -683,18 +683,18 @@
   function renderStep8(host){
     const d = state.data;
     host.innerHTML = card('🎁 Programas sociales',
-      '<div class="field"><label>¿Reciben algún apoyo social (cualquier nivel de gobierno u organización)?</label>'+
+      '<div class="field"><label class="req">¿Reciben algún apoyo social (cualquier nivel de gobierno u organización)?</label>'+
         radioG('recibeApoyo', ['Sí','No'], d.recibeApoyo)+'</div>'+
       '<div class="field"><label>En caso afirmativo, ¿cuál?</label>'+
         '<input type="text" name="recibeApoyoCual" value="'+esc(d.recibeApoyoCual)+'"></div>'+
       '<div class="field"><label>Nivel de satisfacción con el apoyo</label>'+
         radioG('satisfaccionApoyo', ['Alto','Medio','Bajo'], d.satisfaccionApoyo)+'</div>'+
-      '<div class="field"><label>¿Qué tipo de apoyo considera que necesita? (puede marcar varias)</label>'+
+      '<div class="field"><label class="req">¿Qué tipo de apoyo considera que necesita? (puede marcar varias)</label>'+
         checkG('tipoApoyoNecesario', ['Alimentación','Empleo','Vivienda','Salud','Educación','Otro'], d.tipoApoyoNecesario)+
         '<input type="text" name="tipoApoyoOtro" placeholder="Especifique \'Otro\'" value="'+esc(d.tipoApoyoOtro)+'" style="margin-top:6px"></div>'+
       '<div class="field"><label>De recibir un apoyo, ¿qué preferiría?</label>'+
         radioG('preferenciaApoyo', ['Apoyo Económico','Proyecto para emprendimiento','Ambos','Ninguno'], d.preferenciaApoyo)+'</div>'+
-      '<div class="field"><label>¿Conoce los siguientes programas sociales? (marque los que conoce)</label>'+
+      '<div class="field"><label class="req">¿Conoce los siguientes programas sociales? (marque los que conoce)</label>'+
         checkG('programasConocidos', [
           'Yo Jalisco, Apoyo al Transporte (antes Mi Pasaje)',
           'Listo Jalisco (antes RECREA)',
@@ -728,9 +728,9 @@
     });
     host.innerHTML = card('🗳 Participación y necesidades',
       '<div class="field"><label>Orden de urgencia de atención</label>'+priHTML+'</div>'+
-      '<div class="field"><label>¿Participa en comités o actividades comunitarias?</label>'+
+      '<div class="field"><label class="req">¿Participa en comités o actividades comunitarias?</label>'+
         radioG('participaComites', ['Sí','No'], d.participaComites)+'</div>'+
-      '<div class="field"><label>¿Estaría dispuesto(a) a trabajar en un proyecto comunitario si recibiera apoyo?</label>'+
+      '<div class="field"><label class="req">¿Estaría dispuesto(a) a trabajar en un proyecto comunitario si recibiera apoyo?</label>'+
         radioG('disposicionProyecto', ['Sí','No'], d.disposicionProyecto)+'</div>'+
       '<div class="field"><label>Si la respuesta es "No", ¿por qué?</label>'+
         '<textarea name="disposicionMotivo">'+esc(d.disposicionMotivo)+'</textarea></div>'
@@ -764,19 +764,19 @@
   function renderStep10(host){
     const d = state.data;
     host.innerHTML = card('💬 Opinión social',
-      '<div class="field"><label>¿Conoce a la persona titular de la presidencia de México?</label>'+
+      '<div class="field"><label class="req">¿Conoce a la persona titular de la presidencia de México?</label>'+
         radioG('conocePresidente', ['Sí','No'], d.conocePresidente)+
         '<input type="text" name="conocePresidenteNombre" placeholder="Nombre (si la respuesta es Sí)" value="'+esc(d.conocePresidenteNombre)+'" style="margin-top:6px"></div>'+
-      '<div class="field"><label>¿Conoce a la persona titular de la gubernatura de Jalisco?</label>'+
+      '<div class="field"><label class="req">¿Conoce a la persona titular de la gubernatura de Jalisco?</label>'+
         radioG('conoceGobernador', ['Sí','No'], d.conoceGobernador)+
         '<input type="text" name="conoceGobernadorNombre" placeholder="Nombre (si la respuesta es Sí)" value="'+esc(d.conoceGobernadorNombre)+'" style="margin-top:6px"></div>'+
-      '<div class="field"><label>¿Conoce a la persona titular de la Secretaría de Bienestar?</label>'+
+      '<div class="field"><label class="req">¿Conoce a la persona titular de la Secretaría de Bienestar?</label>'+
         radioG('conoceBienestar', ['Sí','No'], d.conoceBienestar)+
         '<input type="text" name="conoceBienestarNombre" placeholder="Nombre (si la respuesta es Sí)" value="'+esc(d.conoceBienestarNombre)+'" style="margin-top:6px"></div>'+
-      '<div class="field"><label>¿Conoce a la persona titular de la SSAS (Sistema de Asistencia Social)?</label>'+
+      '<div class="field"><label class="req">¿Conoce a la persona titular de la SSAS (Sistema de Asistencia Social)?</label>'+
         radioG('conoceSSAS', ['Sí','No'], d.conoceSSAS)+
         '<input type="text" name="conoceSSASNombre" placeholder="Nombre (si la respuesta es Sí)" value="'+esc(d.conoceSSASNombre)+'" style="margin-top:6px"></div>'+
-      '<div class="field"><label>¿Siente que el Gobierno de Jalisco está cerca de la gente?</label>'+
+      '<div class="field"><label class="req">¿Siente que el Gobierno de Jalisco está cerca de la gente?</label>'+
         radioG('gobiernoCercano', ['Sí','No','A veces'], d.gobiernoCercano)+'</div>'
     ) + card('⭐ Calificación del 1 al 10',
       rangoCalif('califPresidente','Presidencia de México', d.califPresidente)+
@@ -837,33 +837,123 @@
   // ============================================================
   // VALIDACIÓN POR PASO
   // ============================================================
+  /* Devuelve true si el valor está "vacío" (null/undefined/''/array vacío). */
+  function _vacio(v) {
+    if (v == null) return true;
+    if (Array.isArray(v)) return v.length === 0;
+    return String(v).trim() === '';
+  }
+
   function validarStep(){
     const d = state.data;
+
+    // STEP 0 — GPS obligatorio
     if (state.step === 0){
       if (!d.latitud || !d.longitud){
         toast('La ubicación GPS es obligatoria.\n• Activa el GPS del dispositivo\n• Da permiso de ubicación al navegador\n• Pulsa "Volver a intentar GPS" y espera la confirmación verde ✓', 'warn');
         return false;
       }
     }
+
+    // STEP 1 — Identificación
     if (state.step === 1){
-      if (!d.nombre || !d.apPaterno) { toast('Nombre y apellido paterno son obligatorios.', 'warn'); return false; }
-      if (!d.municipio) { toast('El municipio es obligatorio.', 'warn'); return false; }
+      const obli = [
+        ['nombre','Nombre'], ['apPaterno','Apellido paterno'], ['apMaterno','Apellido materno'],
+        ['ocupacion','Ocupación'], ['domicilio','Domicilio'], ['cp','C.P.'],
+        ['localidad','Localidad'], ['colonia','Colonia'], ['municipio','Municipio'], ['celular','Celular'],
+        ['edad','Edad'], ['sexo','Sexo']
+      ];
+      for (const [k, label] of obli) {
+        if (_vacio(d[k])) { toast(label + ' es obligatorio.', 'warn'); return false; }
+      }
     }
+
+    // STEP 2 — Datos del hogar
+    if (state.step === 2){
+      if (_vacio(d.personasHogar)) { toast('Indica el número de personas que viven en el hogar.', 'warn'); return false; }
+      if (_vacio(d.menores18))     { toast('Indica cuántos son menores de 18 años.', 'warn'); return false; }
+      if (_vacio(d.adultos60))     { toast('Indica cuántos adultos mayores (60+) hay.', 'warn'); return false; }
+      if (_vacio(d.aportantes))    { toast('Indica cuántas personas aportan económicamente.', 'warn'); return false; }
+      if (_vacio(d.discapacidad))  { toast('Responde si alguna persona tiene discapacidad.', 'warn'); return false; }
+    }
+
+    // STEP 3 — Situación socioeconómica
     if (state.step === 3){
-      if (!d.ingresoMensual) { toast('Selecciona el ingreso mensual aproximado.', 'warn'); return false; }
+      if (_vacio(d.ingresoMensual)) { toast('Selecciona el ingreso mensual aproximado.', 'warn'); return false; }
+      if (_vacio(d.perdioEmpleo))   { toast('Indica si algún integrante perdió empleo recientemente.', 'warn'); return false; }
     }
+
+    // STEP 4 — Condiciones de vivienda
+    if (state.step === 4){
+      if (_vacio(d.serviciosPublicos)) { toast('Marca al menos un servicio público (o "Ninguno").', 'warn'); return false; }
+      if (_vacio(d.tipoVivienda))      { toast('Selecciona el tipo de vivienda.', 'warn'); return false; }
+      if (_vacio(d.materialPiso))      { toast('Selecciona el material predominante del piso.', 'warn'); return false; }
+      if (_vacio(d.materialTecho))     { toast('Selecciona el material predominante del techo.', 'warn'); return false; }
+    }
+
+    // STEP 5 — Transporte
+    if (state.step === 5){
+      if (_vacio(d.medioTransporte))      { toast('Selecciona el medio de transporte que utiliza.', 'warn'); return false; }
+      if (_vacio(d.apoyoTransporte))      { toast('Indica si alguna persona recibe apoyo al transporte.', 'warn'); return false; }
+      if (_vacio(d.frecuenciaTransporte)) { toast('Indica con qué frecuencia utiliza el transporte público.', 'warn'); return false; }
+    }
+
+    // STEP 6 — Educación
+    if (state.step === 6){
+      if (_vacio(d.nivelEstudios))       { toast('Selecciona el nivel máximo de estudios.', 'warn'); return false; }
+      if (_vacio(d.ninosNoEscuela))      { toast('Indica si hay niños o jóvenes que no asisten a la escuela.', 'warn'); return false; }
+      if (_vacio(d.apoyoEscolar))        { toast('Indica si reciben el apoyo de mochilas, uniformes y útiles escolares.', 'warn'); return false; }
+      if (_vacio(d.condicionEscuela))    { toast('Califica las condiciones de la escuela.', 'warn'); return false; }
+      if (_vacio(d.estanciasInfantiles)) { toast('Indica si hay estancias infantiles en su municipio.', 'warn'); return false; }
+    }
+
+    // STEP 7 — Salud
+    if (state.step === 7){
+      if (_vacio(d.servicioSalud))        { toast('Indica si cuenta con servicio de salud público.', 'warn'); return false; }
+      if (_vacio(d.hospitalCerca))        { toast('Indica si hay un hospital o centro de salud cerca.', 'warn'); return false; }
+      if (_vacio(d.enfCronicas))          { toast('Indica si hay personas con enfermedades crónicas en el hogar.', 'warn'); return false; }
+      if (_vacio(d.problemasEmocionales)) { toast('Indica si alguna persona ha presentado problemas emocionales.', 'warn'); return false; }
+      if (_vacio(d.atencionPsicologica))  { toast('Indica si alguien recibe o necesita atención psicológica.', 'warn'); return false; }
+    }
+
+    // STEP 8 — Programas sociales
+    if (state.step === 8){
+      if (_vacio(d.recibeApoyo))        { toast('Indica si reciben algún apoyo social.', 'warn'); return false; }
+      if (_vacio(d.tipoApoyoNecesario)) { toast('Selecciona al menos un tipo de apoyo que necesitan.', 'warn'); return false; }
+      if (_vacio(d.programasConocidos) && _vacio(d.programasOtro)) {
+        toast('Señala los programas sociales que conoce (marca una casilla o escribe en "Otro").', 'warn');
+        return false;
+      }
+    }
+
+    // STEP 9 — Participación y necesidades
     if (state.step === 9){
       const pri = d.prioridades || {};
       const usados = {};
       const dup = [];
+      let conRango = 0;
       Object.keys(pri).forEach(function(t){
         const r = pri[t] && pri[t].rango;
         if (!r) return;
+        conRango++;
         if (usados[r]) dup.push(r);
         usados[r] = true;
       });
       if (dup.length){ toast('No puedes repetir números en el orden de urgencia.', 'warn'); return false; }
+      if (conRango < 6){ toast('Asigna el orden de urgencia a las 6 problemáticas (del 1 al 6).', 'warn'); return false; }
+      if (_vacio(d.participaComites))    { toast('Indica si participa en comités o actividades comunitarias.', 'warn'); return false; }
+      if (_vacio(d.disposicionProyecto)) { toast('Indica si estaría dispuesto(a) a trabajar en un proyecto comunitario.', 'warn'); return false; }
     }
+
+    // STEP 10 — Opinión social
+    if (state.step === 10){
+      if (_vacio(d.conocePresidente)) { toast('Indica si conoce a la persona titular de la presidencia de México.', 'warn'); return false; }
+      if (_vacio(d.conoceGobernador)) { toast('Indica si conoce a la persona titular de la gubernatura de Jalisco.', 'warn'); return false; }
+      if (_vacio(d.conoceBienestar))  { toast('Indica si conoce a la persona titular de la Secretaría de Bienestar.', 'warn'); return false; }
+      if (_vacio(d.conoceSSAS))       { toast('Indica si conoce a la persona titular de la SSAS.', 'warn'); return false; }
+      if (_vacio(d.gobiernoCercano))  { toast('Indica si siente que el Gobierno de Jalisco está cerca de la gente.', 'warn'); return false; }
+    }
+
     return true;
   }
 
