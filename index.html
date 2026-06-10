@@ -116,19 +116,20 @@
   .nav-btns{display:flex;gap:10px;margin-top:16px}
   .nav-btns .btn{flex:1}
 
-  /* Foto */
-  .photo-area{border:2px dashed var(--border);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:.2s;background:var(--surface-2)}
-  .photo-area:hover{border-color:var(--magenta);background:rgba(194,75,150,.06)}
-  .photo-area.has{border-style:solid;border-color:var(--magenta);padding:8px;background:var(--surface)}
-  .photo-area img{max-width:100%;max-height:240px;border-radius:8px;display:block;margin:0 auto}
-  .photo-area .icon{font-size:42px;margin-bottom:8px;display:block}
-  .photo-area .hint{font-size:12px;color:var(--text-dim);margin-top:8px}
-
   /* GPS */
   .gps-box{background:rgba(194,75,150,.08);border:1px solid var(--magenta);border-radius:8px;padding:10px 12px;font-size:12px;display:flex;align-items:center;gap:8px;color:var(--text)}
   .gps-box b{color:var(--naranja)}
   .gps-box.err{background:rgba(239,68,68,.15);border-color:var(--error);color:#fca5a5}
   .gps-box .ico{font-size:18px}
+
+  /* Foto de la fachada */
+  .photo-area{border:2px dashed var(--border);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:.2s;background:var(--surface-2);user-select:none}
+  .photo-area:hover{border-color:var(--magenta);background:rgba(194,75,150,.06)}
+  .photo-area.has{border-style:solid;border-color:var(--magenta);padding:8px;background:var(--surface)}
+  .photo-area img{max-width:100%;max-height:240px;border-radius:8px;display:block;margin:0 auto}
+  .photo-area .icon{font-size:42px;margin-bottom:8px;display:block}
+  .photo-area .hint{font-size:12px;color:var(--text-dim);margin-top:8px}
+  #fotoInput{display:none}
 
   /* Integrante */
   .integrante{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:10px}
@@ -275,12 +276,14 @@
 
 <script>
   // ============================================================
-  // CONFIGURACIÓN
+  // 🔴 CONFIGURACIÓN — REEMPLAZA ESTA URL POR LA TUYA DE APPS SCRIPT
   // ============================================================
   const URL_API = "https://script.google.com/macros/s/AKfycbzcsgsD63-SfiGUM8YON_9J7onBa7nsFIEUojxE2KZQDC3MLgW-xowKORtNCpOxZj2Z/exec";
+  // Ejemplo: "https://script.google.com/macros/s/AKfycb.../exec"
 
   // ============================================================
-  // CATÁLOGOS (offline-first)
+  // CATÁLOGOS (offline-first: están quemados en el HTML)
+  // Edita estas listas si quieres añadir/quitar opciones.
   // ============================================================
   const MUNICIPIOS = [
     "Acatic","Acatlán de Juárez","Ahualulco de Mercado","Amacueca","Amatitán","Ameca",
@@ -308,13 +311,12 @@
     "Zapotlán del Rey","Zapotlán el Grande","Zapotlanejo"
   ];
   const OCUPACIONES = [
-    "Empleado","Obrero","Comerciante","Empresario","Profesionista","Servidor público",
-    "Agricultor","Ganadero","Pescador","Ama de casa","Estudiante","Jubilado/Pensionado",
-    "Desempleado","Trabajador por cuenta propia","Otro"
+    "Empleado","Comerciante","Ama de Casa","Estudiante","Jubilado/Pensionado",
+    "Desempleado","Agricultor","Ganadero","Servidor Público","Oficio","Otro"
   ];
 
   // ============================================================
-  // INDEXEDDB
+  // INDEXEDDB — cola de pendientes + config (PIN)
   // ============================================================
   const DB = (function(){
     const NAME = 'ssasOffline'; const STORE_P = 'pendientes'; const STORE_C = 'config';
@@ -322,7 +324,7 @@
     function open(){
       if (dbP) return dbP;
       dbP = new Promise(function(res, rej){
-        const req = indexedDB.open(NAME, 2);
+        const req = indexedDB.open(NAME, 2);   // versión 2: añade store 'config'
         req.onupgradeneeded = function(){
           const db = req.result;
           if (!db.objectStoreNames.contains(STORE_P)) db.createObjectStore(STORE_P, { keyPath: 'id' });
@@ -335,10 +337,12 @@
     }
     function tx(store, mode){ return open().then(function(db){ return db.transaction(store, mode).objectStore(store); }); }
     return {
+      // Pendientes
       add:    function(item){ return tx(STORE_P,'readwrite').then(function(s){ return new Promise(function(r,j){ const q=s.add(item);q.onsuccess=()=>r();q.onerror=()=>j(q.error); }); }); },
       delete: function(id){   return tx(STORE_P,'readwrite').then(function(s){ return new Promise(function(r,j){ const q=s.delete(id);q.onsuccess=()=>r();q.onerror=()=>j(q.error); }); }); },
       all:    function(){     return tx(STORE_P,'readonly').then(function(s){  return new Promise(function(r,j){ const q=s.getAll();q.onsuccess=()=>r(q.result||[]);q.onerror=()=>j(q.error); }); }); },
       clear:  function(){     return tx(STORE_P,'readwrite').then(function(s){ return new Promise(function(r,j){ const q=s.clear();q.onsuccess=()=>r();q.onerror=()=>j(q.error); }); }); },
+      // Config
       cfgGet: function(k){    return tx(STORE_C,'readonly').then(function(s){  return new Promise(function(r,j){ const q=s.get(k);q.onsuccess=()=>r(q.result||null);q.onerror=()=>j(q.error); }); }); },
       cfgSet: function(k,v){  return tx(STORE_C,'readwrite').then(function(s){ return new Promise(function(r,j){ const q=s.put({k:k,v:v});q.onsuccess=()=>r();q.onerror=()=>j(q.error); }); }); }
     };
@@ -348,11 +352,11 @@
   // ESTADO GLOBAL
   // ============================================================
   const state = {
-    pin: null,
+    pin: null,            // PIN del encuestador (string de 4-6 dígitos)
     data: {},
     step: 0,
-    startTime: null,
-    horaInicio: null,
+    startTime: null,      // ms (Date.now) cuando empezó la encuesta actual
+    horaInicio: null,     // string ISO local cuando empezó
     online: navigator.onLine,
     pendientes: 0
   };
@@ -372,19 +376,23 @@
     });
   }
   function fmtFecha(iso){
-    try { return new Date(iso).toLocaleString('es-MX',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }
-    catch(e){ return iso; }
+    try {
+      return new Date(iso).toLocaleString('es-MX',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    } catch(e){ return iso; }
   }
+  /* Devuelve hora actual en formato YYYY-MM-DD HH:MM:SS local */
   function ahoraLocalISO(){
     const d = new Date();
     const pad = function(n){ return String(n).padStart(2,'0'); };
     return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+
            pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
   }
+  /* "HH:MM" desde un string "YYYY-MM-DD HH:MM:SS" */
   function soloHora(s){
     const m = String(s||'').match(/(\d{2}:\d{2})/);
     return m ? m[1] : '—';
   }
+  /* Convierte segundos a "Xm Ys" o "Xh Ym Zs" */
   function fmtDur(seg){
     seg = Number(seg) || 0;
     if (seg < 60) return seg + ' s';
@@ -393,6 +401,7 @@
     const h = Math.floor(m/60), mm = m%60;
     return mm ? h+' h '+mm+' min' : h+' h';
   }
+
   function showLoader(txt){ $('loaderTxt').textContent = txt || 'Procesando…'; $('loader').classList.add('show'); }
   function hideLoader(){ $('loader').classList.remove('show'); }
   function toast(txt, tipo){
@@ -425,6 +434,14 @@
       lista.map(function(o){ return '<option value="'+esc(o)+'" '+(sel===o?'selected':'')+'>'+esc(o)+'</option>'; }).join('')+
       '</select>';
   }
+  /* Genera un <select> con los números min..max */
+  function selectNumero(name, min, max, sel){
+    let opts = '<option value="">— Selecciona —</option>';
+    for (let n = min; n <= max; n++){
+      opts += '<option value="'+n+'" '+(String(sel)===String(n)?'selected':'')+'>'+n+'</option>';
+    }
+    return '<select name="'+name+'">'+opts+'</select>';
+  }
   function _selectOcupInt_(idx, opciones, sel){
     const lista = opciones.slice();
     if (sel && lista.indexOf(sel) === -1) lista.unshift(sel);
@@ -443,7 +460,7 @@
   // PASOS DEL CUESTIONARIO
   // ============================================================
   const STEPS = [
-    { name:'Inicio (GPS)',        render:renderStep0 },
+    { name:'Inicio (foto + GPS)', render:renderStep0 },
     { name:'Identificación',      render:renderStep1 },
     { name:'Datos del hogar',     render:renderStep2 },
     { name:'Socioeconómico',      render:renderStep3 },
@@ -468,71 +485,70 @@
     window.scrollTo(0,0);
   }
 
-  // ----- STEP 0: GPS — OBLIGATORIO -----
+  // ----- STEP 0: Foto de fachada + GPS -----
   function renderStep0(host){
-    host.innerHTML = card('📸 Foto de la fachada del hogar', `
-      <div class="photo-area" id="photoArea">
-        <span class="icon">📷</span>
-        <div>Toca para seleccionar o tomar la foto</div>
-        <div class="hint">En PC: selecciona una imagen. En móvil: toma foto o elige de galería. La imagen se comprimirá automáticamente.</div>
-      </div>
-      <input type="file" id="fotoInput" accept="image/*" style="display:none">
-    `) + card('📍 Ubicación GPS <span style="color:var(--naranja);font-size:11px;font-weight:400">(obligatoria)</span>',
-      '<div style="background:rgba(240,129,18,.1);border:1px solid var(--naranja);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--naranja);margin-bottom:10px;display:flex;align-items:flex-start;gap:8px">'+
-        '<span style="font-size:16px;flex-shrink:0">⚠️</span>'+
-        '<span>La ubicación GPS es <b>obligatoria</b>. Sin ella no es posible georreferenciar la encuesta. <b>Activa el GPS y da permiso antes de continuar.</b></span>'+
+    host.innerHTML = card('📸 Foto de la fachada del hogar',
+      '<div class="photo-area" id="photoArea">'+
+        '<span class="icon">📷</span>'+
+        '<div>Toca para tomar la foto</div>'+
+        '<div class="hint">Se usará la cámara trasera. La foto será comprimida automáticamente.</div>'+
       '</div>'+
+      '<input type="file" id="fotoInput" accept="image/*" capture="environment">'
+    ) + card('📍 Ubicación GPS',
       '<div id="gpsBox" class="gps-box"><span class="ico">📍</span><span id="gpsTxt">Obteniendo ubicación…</span></div>'+
-      '<div id="gpsEstado" style="margin-top:8px;font-size:12px;display:none"></div>'+
-      '<button class="btn btn-acc btn-full" id="btnGps" style="margin-top:10px">🔄 Volver a intentar GPS</button>'+
-      '<small class="help" style="margin-top:8px">Si el navegador bloquea la ubicación: Configuración → Permisos → Ubicación → Permitir.</small>'
+      '<button class="btn btn-sec btn-full" id="btnGps" style="margin-top:10px">Volver a intentar GPS</button>'+
+      '<small class="help" style="margin-top:8px">La ubicación es opcional pero recomendable. Si no puedes obtenerla, igual puedes continuar.</small>'
     );
-    // Foto de fachada
+
+    // Bind de la foto
     const area = $('photoArea'), inp = $('fotoInput');
-    area.onclick = () => inp.click();
-    inp.onchange = e => {
-      const f = e.target.files[0];
-      inp.value = '';
+    function bindAreaClick(){ area.onclick = function(){ inp.click(); }; }
+    bindAreaClick();
+    inp.onchange = function(e){
+      const f = e.target.files && e.target.files[0];
+      inp.value = '';                                // permitir volver a seleccionar la misma foto
       if (!f) return;
-      comprimirImagen(f, 1024, 0.7).then(b64 => {
+      showLoader('Procesando foto…');
+      comprimirImagen(f, 1024, 0.7).then(function(b64){
+        hideLoader();
         state.data.fotoBase64 = b64;
         area.classList.add('has');
-        area.innerHTML = '<img src="' + b64 + '" alt="fachada"><div class="hint">Toca para cambiar la foto</div>';
-        area.onclick = () => inp.click();
-      }).catch(err => { toast('Error procesando imagen: ' + err.message, 'err'); });
+        area.innerHTML = '<img src="'+b64+'" alt="fachada"><div class="hint">Toca para cambiar la foto</div>';
+        bindAreaClick();                             // re-bind tras reemplazar innerHTML
+      }).catch(function(err){
+        hideLoader();
+        toast('Error procesando imagen: ' + (err && err.message || err), 'err');
+      });
     };
-    if (state.data.fotoBase64) {
+    // Si ya había foto guardada (volvimos al paso), mostrarla
+    if (state.data.fotoBase64){
       area.classList.add('has');
-      area.innerHTML = '<img src="' + state.data.fotoBase64 + '" alt="fachada"><div class="hint">Toca para cambiar la foto</div>';
-      area.onclick = () => inp.click();
+      area.innerHTML = '<img src="'+state.data.fotoBase64+'" alt="fachada"><div class="hint">Toca para cambiar la foto</div>';
+      bindAreaClick();
     }
 
+    // Bind de GPS (sin cambios respecto a la versión anterior)
     $('btnGps').onclick = obtenerGPS;
     if (state.data.latitud && state.data.longitud){
-      _mostrarGPSOk(state.data.latitud, state.data.longitud, null);
+      $('gpsTxt').innerHTML = 'Lat: <b>'+state.data.latitud+'</b> · Lng: <b>'+state.data.longitud+'</b> (guardado)';
     } else {
       obtenerGPS();
     }
   }
-  function _mostrarGPSOk(lat, lng, accuracy){
-    const box = $('gpsBox'), txt = $('gpsTxt'), est = $('gpsEstado');
-    if (!box) return;
-    box.classList.remove('err');
-    box.style.background = 'rgba(34,197,94,.12)';
-    box.style.borderColor = 'var(--success)';
-    if (txt) txt.innerHTML = '✅ Lat: <b>'+lat+'</b> · Lng: <b>'+lng+'</b>'+(accuracy?' · ±'+Math.round(accuracy)+' m':'');
-    if (est){ est.style.display='block'; est.innerHTML='<span style="color:var(--success);font-weight:600">✓ Ubicación capturada. Puedes continuar.</span>'; }
-  }
-  function comprimirImagen(file, maxLado, q) {
-    return new Promise((resolve, reject) => {
+
+  /* Lee un File, lo dibuja en un canvas reducido a `maxLado` px del lado mayor
+     y devuelve un data-URL JPEG con la calidad indicada (0-1). */
+  function comprimirImagen(file, maxLado, q){
+    return new Promise(function(resolve, reject){
       const r = new FileReader();
-      r.onload = e => {
+      r.onload = function(e){
         const img = new Image();
-        img.onload = () => {
+        img.onload = function(){
           let w = img.width, h = img.height;
-          if (w > h && w > maxLado) { h = h*(maxLado/w); w = maxLado; }
-          else if (h > maxLado) { w = w*(maxLado/h); h = maxLado; }
-          const c = document.createElement('canvas'); c.width = w; c.height = h;
+          if (w > h && w > maxLado)      { h = h * (maxLado / w); w = maxLado; }
+          else if (h > maxLado)          { w = w * (maxLado / h); h = maxLado; }
+          const c = document.createElement('canvas');
+          c.width = w; c.height = h;
           c.getContext('2d').drawImage(img, 0, 0, w, h);
           resolve(c.toDataURL('image/jpeg', q));
         };
@@ -544,34 +560,22 @@
     });
   }
   function obtenerGPS(){
-    const box = $('gpsBox'), txt = $('gpsTxt'), est = $('gpsEstado');
+    const box = $('gpsBox'), txt = $('gpsTxt');
     if (!box || !txt) return;
     box.classList.remove('err');
-    box.style.background = '';
-    box.style.borderColor = '';
-    txt.textContent = 'Obteniendo ubicación… (puede tardar unos segundos)';
-    if (est){ est.style.display='block'; est.innerHTML='<span style="color:var(--naranja)">⏳ Esperando señal GPS…</span>'; }
+    txt.textContent = 'Obteniendo ubicación…';
     if (!navigator.geolocation){
-      box.classList.add('err');
-      txt.textContent = 'Este dispositivo no soporta geolocalización.';
-      if (est) est.innerHTML='<span style="color:var(--error)">✗ Dispositivo sin soporte GPS.</span>';
+      box.classList.add('err'); txt.textContent = 'Geolocalización no soportada en este dispositivo';
       return;
     }
     navigator.geolocation.getCurrentPosition(function(pos){
       state.data.latitud  = pos.coords.latitude.toFixed(6);
       state.data.longitud = pos.coords.longitude.toFixed(6);
-      _mostrarGPSOk(state.data.latitud, state.data.longitud, pos.coords.accuracy);
+      txt.innerHTML = 'Lat: <b>'+state.data.latitud+'</b> · Lng: <b>'+state.data.longitud+'</b>';
     }, function(err){
-      state.data.latitud  = '';
-      state.data.longitud = '';
       box.classList.add('err');
-      box.style.background = '';
-      box.style.borderColor = '';
-      const msgs = { 1:'Permiso denegado. Activa la ubicación en ajustes del navegador.', 2:'Señal GPS no disponible. Activa el GPS del dispositivo.', 3:'Tiempo agotado. Comprueba que el GPS esté activo.' };
-      const msg = msgs[err.code] || ('Error: ' + err.message);
-      txt.textContent = msg;
-      if (est) est.innerHTML='<span style="color:var(--error)">✗ '+msg+'</span>';
-    }, { enableHighAccuracy:true, timeout:20000, maximumAge:0 });
+      txt.textContent = 'No se pudo obtener: ' + (err.message || 'permiso denegado');
+    }, { enableHighAccuracy:true, timeout:10000, maximumAge:60000 });
   }
 
   // ----- STEP 1: Identificación -----
@@ -590,10 +594,12 @@
       '<div class="row">'+
         '<div><label class="req">Edad</label><input type="number" name="edad" min="0" max="120" value="'+esc(d.edad)+'"></div>'+
         '<div><label class="req">Sexo</label><select name="sexo"><option value="">—</option>'+
-          '<option '+(d.sexo==='M'?'selected':'')+'>M</option>'+
-          '<option '+(d.sexo==='F'?'selected':'')+'>F</option>'+
+          '<option '+(d.sexo==='Hombre'?'selected':'')+'>Hombre</option>'+
+          '<option '+(d.sexo==='Mujer'?'selected':'')+'>Mujer</option>'+
           '<option '+(d.sexo==='Otro'?'selected':'')+'>Otro</option></select></div>'+
-      '</div>'
+      '</div>'+
+      '<div class="field" id="sexoOtroBox" '+(d.sexo==='Otro'?'':'style="display:none"')+'>'+
+        '<label>Especifique sexo</label><input type="text" name="sexoOtro" value="'+esc(d.sexoOtro)+'"></div>'
     ) + card('🏠 Domicilio',
       '<div class="field"><label class="req">Domicilio (calle y número)</label><input type="text" name="domicilio" value="'+esc(d.domicilio)+'"></div>'+
       '<div class="row">'+
@@ -606,7 +612,7 @@
       '</div>'+
       '<div class="row">'+
         '<div><label>Área</label><input type="text" name="area" value="'+esc(d.area)+'"></div>'+
-        '<div><label>AGEB</label><input type="text" name="ageb" value="'+esc(d.ageb)+'"></div>'+
+        '<div><label class="req">AGEB</label><input type="text" name="ageb" value="'+esc(d.ageb)+'"></div>'+
       '</div>'+
       '<div class="field"><label class="req">Municipio</label>'+selectCat('municipio', MUNICIPIOS, d.municipio, '— Selecciona municipio —')+'</div>'+
       '<div class="row">'+
@@ -614,6 +620,13 @@
         '<div><label class="req">Celular</label><input type="tel" name="celular" value="'+esc(d.celular)+'"></div>'+
       '</div>'
     );
+    // Mostrar/ocultar campo "especifique sexo" según selección
+    const selSexo = host.querySelector('select[name=sexo]');
+    if (selSexo){
+      selSexo.addEventListener('change', function(){
+        $('sexoOtroBox').style.display = this.value === 'Otro' ? '' : 'none';
+      });
+    }
   }
 
   // ----- STEP 2: Hogar -----
@@ -634,14 +647,14 @@
     }
     host.innerHTML = card('👨‍👩‍👧 Datos del hogar',
       '<div class="row">'+
-        '<div><label class="req">Personas que viven en el hogar</label><input type="number" name="personasHogar" min="0" value="'+esc(d.personasHogar)+'"></div>'+
+        '<div><label class="req">Personas que viven en el hogar (incluyéndolo)</label><input type="number" name="personasHogar" min="1" value="'+esc(d.personasHogar)+'"></div>'+
         '<div><label class="req">Menores de 18</label><input type="number" name="menores18" min="0" value="'+esc(d.menores18)+'"></div>'+
         '<div><label class="req">Adultos 60+</label><input type="number" name="adultos60" min="0" value="'+esc(d.adultos60)+'"></div>'+
       '</div>'+
-      '<small class="help">Captura información de los 3 primeros integrantes:</small>'+
+      '<small class="help">Anote la información de 3 integrantes de su hogar:</small>'+
       '<div style="margin-top:10px">'+intHTML+'</div>'+
-      '<div class="field" style="margin-top:14px"><label class="req">¿Cuántas personas aportan económicamente?</label>'+
-        '<input type="number" name="aportantes" min="0" value="'+esc(d.aportantes)+'"></div>'+
+      '<div class="field" style="margin-top:14px"><label class="req">¿Cuántas personas aportan económicamente a este hogar?</label>'+
+        selectNumero('aportantes', 1, 10, d.aportantes)+'</div>'+
       '<div class="field"><label class="req">¿Alguna persona tiene discapacidad?</label>'+radioG('discapacidad', ['Sí','No','Prefiero no decir'], d.discapacidad)+'</div>'+
       '<div class="field"><label>En caso afirmativo, ¿cuál?</label>'+
         '<input type="text" name="tipoDiscapacidad" value="'+esc(d.tipoDiscapacidad)+'"></div>'
@@ -665,14 +678,14 @@
   function renderStep4(host){
     const d = state.data;
     host.innerHTML = card('🏘 Condiciones de vivienda',
-      '<div class="field"><label class="req">Servicios públicos con los que cuenta</label>'+
+      '<div class="field"><label class="req">Servicios públicos con los que cuenta (selección múltiple)</label>'+
         checkG('serviciosPublicos', ['Agua','Drenaje','Electricidad','Internet','Ninguno'], d.serviciosPublicos)+'</div>'+
       '<div class="field"><label class="req">Tipo de vivienda</label>'+radioG('tipoVivienda', ['Propia','Rentada','Prestada'], d.tipoVivienda)+'</div>'+
       '<div class="field"><label class="req">Material predominante del PISO</label>'+
-        radioG('materialPiso', ['Tierra','Cemento','Otro'], d.materialPiso)+
+        radioG('materialPiso', ['Tierra','Cemento','Piso/vitropiso','Otro'], d.materialPiso)+
         '<input type="text" name="materialPisoOtro" placeholder="Especifique si es \'Otro\'" value="'+esc(d.materialPisoOtro)+'" style="margin-top:6px"></div>'+
       '<div class="field"><label class="req">Material predominante del TECHO</label>'+
-        radioG('materialTecho', ['Lámina','Concreto','Otro'], d.materialTecho)+
+        radioG('materialTecho', ['Lámina','Concreto','Cartón','Otro'], d.materialTecho)+
         '<input type="text" name="materialTechoOtro" placeholder="Especifique si es \'Otro\'" value="'+esc(d.materialTechoOtro)+'" style="margin-top:6px"></div>'
     );
   }
@@ -689,7 +702,7 @@
       '<div class="field"><label>En caso afirmativo, ¿qué tipo de apoyo? (puede marcar varias)</label>'+
         checkG('apoyoTransporteTipo', ['Estudiante','Discapacidad','Maestros','Tercera edad','Familiares de personas desaparecidas','Mujeres','Niñas y niños'], d.apoyoTransporteTipo)+'</div>'+
       '<div class="field"><label class="req">De utilizar transporte público, ¿con qué frecuencia?</label>'+
-        radioG('frecuenciaTransporte', ['Diario','3 a 4 veces por semana','1 o 2 veces por semana'], d.frecuenciaTransporte)+'</div>'
+        radioG('frecuenciaTransporte', ['Diario','3 a 4 veces por semana','1 o 2 veces por semana','0 veces / No lo utilizo'], d.frecuenciaTransporte)+'</div>'
     );
   }
 
@@ -698,16 +711,32 @@
     const d = state.data;
     host.innerHTML = card('📚 Educación',
       '<div class="field"><label class="req">Nivel máximo de estudios de la persona jefa de familia</label>'+
-        radioG('nivelEstudios', ['Sin estudios','Primaria','Secundaria','Preparatoria','Superior'], d.nivelEstudios)+'</div>'+
+        radioG('nivelEstudios', ['Sin estudios','Primaria','Secundaria','Preparatoria','Licenciatura/Ingeniería','Posgrado'], d.nivelEstudios)+'</div>'+
       '<div class="field"><label class="req">¿Hay niños o jóvenes que no asisten a la escuela?</label>'+
         radioG('ninosNoEscuela', ['Sí','No'], d.ninosNoEscuela)+'</div>'+
-      '<div class="field"><label class="req">¿Han recibido el apoyo de mochilas, uniformes y útiles escolares gratuitos del Gobierno del Estado?</label>'+
+      '<div class="field" id="ninosNoEscuelaCantBox" '+(d.ninosNoEscuela==='Sí'?'':'style="display:none"')+'>'+
+        '<label>¿Cuántos?</label>'+selectNumero('ninosNoEscuelaCantidad', 1, 10, d.ninosNoEscuelaCantidad)+'</div>'+
+      '<div class="field"><label class="req">¿Han recibido el apoyo de mochilas, uniformes y útiles escolares gratuitos del Gobierno del Estado en conjunto con el municipio?</label>'+
         radioG('apoyoEscolar', ['Sí','No'], d.apoyoEscolar)+'</div>'+
+      '<div class="field" id="apoyoEscolarMotivoBox" '+(d.apoyoEscolar==='No'?'':'style="display:none"')+'>'+
+        '<label>¿Por qué no han recibido el apoyo?</label>'+
+        '<textarea name="apoyoEscolarMotivo">'+esc(d.apoyoEscolarMotivo)+'</textarea></div>'+
       '<div class="field"><label class="req">¿Cómo calificaría las condiciones de la escuela a la que asisten sus hijos?</label>'+
         radioG('condicionEscuela', ['Buena','Regular','Mala','No aplica'], d.condicionEscuela)+'</div>'+
       '<div class="field"><label class="req">¿Hay estancias infantiles en su municipio?</label>'+
         radioG('estanciasInfantiles', ['Sí','No','No sabe'], d.estanciasInfantiles)+'</div>'
     );
+    // Mostrar/ocultar subcampos condicionales
+    host.querySelectorAll('input[name=ninosNoEscuela]').forEach(function(r){
+      r.addEventListener('change', function(){
+        $('ninosNoEscuelaCantBox').style.display = this.value === 'Sí' ? '' : 'none';
+      });
+    });
+    host.querySelectorAll('input[name=apoyoEscolar]').forEach(function(r){
+      r.addEventListener('change', function(){
+        $('apoyoEscolarMotivoBox').style.display = this.value === 'No' ? '' : 'none';
+      });
+    });
   }
 
   // ----- STEP 7: Salud -----
@@ -717,7 +746,7 @@
       '<div class="field"><label class="req">¿Cuenta con servicio de salud público?</label>'+
         radioG('servicioSalud', ['Sí','No'], d.servicioSalud)+'</div>'+
       '<div class="field"><label>En caso afirmativo, ¿cuál? (puede marcar varias)</label>'+
-        checkG('servicioSaludTipo', ['IMSS','ISSSTE','INSABI / Bienestar','Salud Jalisco','Otro'], d.servicioSaludTipo)+
+        checkG('servicioSaludTipo', ['IMSS','ISSSTE','INSABI / Bienestar','Seguro Médico Al estilo Jalisco','Otro'], d.servicioSaludTipo)+
         '<input type="text" name="servicioSaludOtro" placeholder="Especifique \'Otro\'" value="'+esc(d.servicioSaludOtro)+'" style="margin-top:6px"></div>'+
       '<div class="field"><label>¿Cómo calificaría el servicio?</label>'+
         radioG('calificacionSalud', ['Bueno','Regular','Malo'], d.calificacionSalud)+'</div>'+
@@ -727,11 +756,29 @@
         radioG('hospitalCerca', ['Sí','No','No sabe'], d.hospitalCerca)+'</div>'+
       '<div class="field"><label class="req">¿Hay personas con enfermedades crónicas en el hogar?</label>'+
         radioG('enfCronicas', ['Sí','No'], d.enfCronicas)+'</div>'+
-      '<div class="field"><label class="req">¿Alguna persona ha presentado problemas emocionales (tristeza, ansiedad, problemas para dormir o convivir)?</label>'+
+      '<div class="field" id="enfCronicasCantBox" '+(d.enfCronicas==='Sí'?'':'style="display:none"')+'>'+
+        '<label>¿Cuántas personas?</label>'+selectNumero('enfCronicasCantidad', 1, 10, d.enfCronicasCantidad)+'</div>'+
+      '<div class="field"><label class="req">¿Alguna persona ha presentado problemas emocionales (tristeza, ansiedad, dificultad para dormir o convivir)?</label>'+
         radioG('problemasEmocionales', ['Sí','No','No sabe / Prefiero no decir'], d.problemasEmocionales)+'</div>'+
+      '<div class="field" id="problemasEmocCualBox" '+(d.problemasEmocionales==='Sí'?'':'style="display:none"')+'>'+
+        '<label>¿Cuál?</label>'+
+        selectCat('problemasEmocionalesCual',
+          ['Tristeza','Ansiedad','Dificultad para dormir','Dificultad para convivir'],
+          d.problemasEmocionalesCual, '— Selecciona —')+'</div>'+
       '<div class="field"><label class="req">¿Alguien recibe atención psicológica/psiquiátrica o cree que la necesita y no la recibe?</label>'+
         radioG('atencionPsicologica', ['Sí (la recibe)','Sí (la necesita y no la recibe)','No','No sabe / Prefiero no decir'], d.atencionPsicologica)+'</div>'
     );
+    // Subcampos condicionales
+    host.querySelectorAll('input[name=enfCronicas]').forEach(function(r){
+      r.addEventListener('change', function(){
+        $('enfCronicasCantBox').style.display = this.value === 'Sí' ? '' : 'none';
+      });
+    });
+    host.querySelectorAll('input[name=problemasEmocionales]').forEach(function(r){
+      r.addEventListener('change', function(){
+        $('problemasEmocCualBox').style.display = this.value === 'Sí' ? '' : 'none';
+      });
+    });
   }
 
   // ----- STEP 8: Programas sociales -----
@@ -740,11 +787,17 @@
     host.innerHTML = card('🎁 Programas sociales',
       '<div class="field"><label class="req">¿Reciben algún apoyo social (cualquier nivel de gobierno u organización)?</label>'+
         radioG('recibeApoyo', ['Sí','No'], d.recibeApoyo)+'</div>'+
-      '<div class="field"><label>En caso afirmativo, ¿cuál?</label>'+
-        '<input type="text" name="recibeApoyoCual" value="'+esc(d.recibeApoyoCual)+'"></div>'+
-      '<div class="field"><label>Nivel de satisfacción con el apoyo</label>'+
-        radioG('satisfaccionApoyo', ['Alto','Medio','Bajo'], d.satisfaccionApoyo)+'</div>'+
-      '<div class="field"><label class="req">¿Qué tipo de apoyo considera que necesita? (puede marcar varias)</label>'+
+      '<div id="apoyoSiBox" '+(d.recibeApoyo==='Sí'?'':'style="display:none"')+'>'+
+        '<div class="field"><label>En caso afirmativo, ¿cuál?</label>'+
+          '<input type="text" name="recibeApoyoCual" value="'+esc(d.recibeApoyoCual)+'"></div>'+
+        '<div class="field"><label>¿Sabe de qué orden de gobierno es este apoyo?</label>'+
+          radioG('apoyoOrdenGobierno', ['Federal','Estatal','Municipal','Organización No Gubernamental'], d.apoyoOrdenGobierno)+'</div>'+
+        '<div class="field"><label>Nivel de satisfacción con el apoyo</label>'+
+          radioG('satisfaccionApoyo', ['Alto','Medio','Bajo'], d.satisfaccionApoyo)+'</div>'+
+        '<div class="field"><label>¿Qué mejoraría del apoyo para mejorar su calificación de satisfacción?</label>'+
+          '<textarea name="mejorariaApoyo">'+esc(d.mejorariaApoyo)+'</textarea></div>'+
+      '</div>'+
+      '<div class="field"><label class="req">¿Qué tipo de apoyo considera que necesita en su hogar? (puede marcar varias)</label>'+
         checkG('tipoApoyoNecesario', ['Alimentación','Empleo','Vivienda','Salud','Educación','Otro'], d.tipoApoyoNecesario)+
         '<input type="text" name="tipoApoyoOtro" placeholder="Especifique \'Otro\'" value="'+esc(d.tipoApoyoOtro)+'" style="margin-top:6px"></div>'+
       '<div class="field"><label>De recibir un apoyo, ¿qué preferiría?</label>'+
@@ -761,6 +814,11 @@
         ], d.programasConocidos)+
         '<input type="text" name="programasOtro" placeholder="Otro programa" value="'+esc(d.programasOtro)+'" style="margin-top:6px"></div>'
     );
+    host.querySelectorAll('input[name=recibeApoyo]').forEach(function(r){
+      r.addEventListener('change', function(){
+        $('apoyoSiBox').style.display = this.value === 'Sí' ? '' : 'none';
+      });
+    });
   }
 
   // ----- STEP 9: Participación / Prioridades -----
@@ -782,17 +840,34 @@
       '</div>';
     });
     host.innerHTML = card('🗳 Participación y necesidades',
-      '<div class="field"><label>Orden de urgencia de atención</label>'+priHTML+'</div>'+
+      '<div class="field"><label class="req">Orden de urgencia de atención</label>'+priHTML+'</div>'+
       '<div class="field"><label class="req">¿Participa en comités o actividades comunitarias?</label>'+
         radioG('participaComites', ['Sí','No'], d.participaComites)+'</div>'+
-      '<div class="field"><label class="req">¿Estaría dispuesto(a) a trabajar en un proyecto comunitario si recibiera apoyo?</label>'+
+      '<div class="field"><label class="req">¿Estaría dispuesto(a) a trabajar en un proyecto/actividad comunitaria?</label>'+
         radioG('disposicionProyecto', ['Sí','No'], d.disposicionProyecto)+'</div>'+
-      '<div class="field"><label>Si la respuesta es "No", ¿por qué?</label>'+
-        '<textarea name="disposicionMotivo">'+esc(d.disposicionMotivo)+'</textarea></div>'
+      '<div class="field" id="disposicionMotivoBox" '+(d.disposicionProyecto==='No'?'':'style="display:none"')+'>'+
+        '<label>Si la respuesta es "No", ¿por qué?</label>'+
+        '<textarea name="disposicionMotivo">'+esc(d.disposicionMotivo)+'</textarea></div>'+
+      '<div class="field"><label class="req">¿Y si recibiera algún tipo de apoyo?</label>'+
+        radioG('disposicionConApoyo', ['Sí','No'], d.disposicionConApoyo)+'</div>'+
+      '<div class="field" id="disposicionConApoyoMotivoBox" '+(d.disposicionConApoyo==='No'?'':'style="display:none"')+'>'+
+        '<label>Si la respuesta es "No", ¿por qué?</label>'+
+        '<textarea name="disposicionConApoyoMotivo">'+esc(d.disposicionConApoyoMotivo)+'</textarea></div>'
     );
     const selects = host.querySelectorAll('.pri-select');
     selects.forEach(function(s){ s.addEventListener('change', function(){ actualizarOpcionesPrioridades(host); }); });
     actualizarOpcionesPrioridades(host);
+    // Mostrar/ocultar textareas de "por qué"
+    host.querySelectorAll('input[name=disposicionProyecto]').forEach(function(r){
+      r.addEventListener('change', function(){
+        $('disposicionMotivoBox').style.display = this.value === 'No' ? '' : 'none';
+      });
+    });
+    host.querySelectorAll('input[name=disposicionConApoyo]').forEach(function(r){
+      r.addEventListener('change', function(){
+        $('disposicionConApoyoMotivoBox').style.display = this.value === 'No' ? '' : 'none';
+      });
+    });
   }
   function actualizarOpcionesPrioridades(host){
     const selects = Array.from(host.querySelectorAll('.pri-select'));
@@ -832,8 +907,10 @@
         radioG('conoceSSAS', ['Sí','No'], d.conoceSSAS)+
         '<input type="text" name="conoceSSASNombre" placeholder="Nombre (si la respuesta es Sí)" value="'+esc(d.conoceSSASNombre)+'" style="margin-top:6px"></div>'+
       '<div class="field"><label class="req">¿Siente que el Gobierno de Jalisco está cerca de la gente?</label>'+
-        radioG('gobiernoCercano', ['Sí','No','A veces'], d.gobiernoCercano)+'</div>'
+        radioG('gobiernoCercano', ['Sí','No','A veces'], d.gobiernoCercano)+
+        '<textarea name="gobiernoCercanoMotivo" placeholder="¿Por qué?" style="margin-top:6px">'+esc(d.gobiernoCercanoMotivo)+'</textarea></div>'
     ) + card('⭐ Calificación del 1 al 10',
+      '<small class="help" style="margin-bottom:10px">Las 4 calificaciones son obligatorias.</small>'+
       rangoCalif('califPresidente','Presidencia de México', d.califPresidente)+
       rangoCalif('califGobernador','Gubernatura de Jalisco', d.califGobernador)+
       rangoCalif('califBienestar','Secretaría de Bienestar', d.califBienestar)+
@@ -875,6 +952,7 @@
       if (c.checked) groups[c.name].push(c.value);
     });
     Object.keys(groups).forEach(function(k){ state.data[k] = groups[k]; });
+    // Prioridades
     const pri = state.data.prioridades || {};
     host.querySelectorAll('[data-pri-rango]').forEach(function(s){
       const k = s.dataset.priRango;
@@ -892,8 +970,8 @@
   // ============================================================
   // VALIDACIÓN POR PASO
   // ============================================================
-  /* Devuelve true si el valor está "vacío" (null/undefined/''/array vacío). */
-  function _vacio(v) {
+  /* Devuelve true si la respuesta es "vacía" (undefined/null/'' o array vacío). */
+  function _vacio(v){
     if (v == null) return true;
     if (Array.isArray(v)) return v.length === 0;
     return String(v).trim() === '';
@@ -902,11 +980,10 @@
   function validarStep(){
     const d = state.data;
 
-    // STEP 0 — Foto de fachada + GPS obligatorio
+    // STEP 0 — Foto de fachada (obligatoria)
     if (state.step === 0){
-      if (!d.fotoBase64) { toast('Por favor toma la foto de la fachada antes de continuar.', 'warn'); return false; }
-      if (!d.latitud || !d.longitud){
-        toast('La ubicación GPS es obligatoria.\n• Activa el GPS del dispositivo\n• Da permiso de ubicación al navegador\n• Pulsa "Volver a intentar GPS" y espera la confirmación verde ✓', 'warn');
+      if (!d.fotoBase64){
+        toast('Por favor toma la foto de la fachada antes de continuar.', 'warn');
         return false;
       }
     }
@@ -915,74 +992,83 @@
     if (state.step === 1){
       const obli = [
         ['nombre','Nombre'], ['apPaterno','Apellido paterno'], ['apMaterno','Apellido materno'],
-        ['ocupacion','Ocupación'], ['domicilio','Domicilio'], ['cp','C.P.'],
-        ['localidad','Localidad'], ['colonia','Colonia'], ['municipio','Municipio'], ['celular','Celular'],
-        ['edad','Edad'], ['sexo','Sexo']
+        ['ocupacion','Ocupación'], ['edad','Edad'], ['sexo','Sexo'],
+        ['domicilio','Domicilio'], ['cp','C.P.'], ['localidad','Localidad'], ['colonia','Colonia'],
+        ['municipio','Municipio'], ['ageb','AGEB'], ['celular','Celular']
       ];
-      for (const [k, label] of obli) {
+      for (const [k,label] of obli){
         if (_vacio(d[k])) { toast(label + ' es obligatorio.', 'warn'); return false; }
+      }
+      if (d.sexo === 'Otro' && _vacio(d.sexoOtro)){
+        toast('Especifica el sexo.', 'warn'); return false;
       }
     }
 
-    // STEP 2 — Datos del hogar
+    // STEP 2 — Hogar
     if (state.step === 2){
-      if (_vacio(d.personasHogar)) { toast('Indica el número de personas que viven en el hogar.', 'warn'); return false; }
-      if (_vacio(d.menores18))     { toast('Indica cuántos son menores de 18 años.', 'warn'); return false; }
-      if (_vacio(d.adultos60))     { toast('Indica cuántos adultos mayores (60+) hay.', 'warn'); return false; }
-      if (_vacio(d.aportantes))    { toast('Indica cuántas personas aportan económicamente.', 'warn'); return false; }
-      if (_vacio(d.discapacidad))  { toast('Responde si alguna persona tiene discapacidad.', 'warn'); return false; }
+      if (_vacio(d.personasHogar))   { toast('Número de personas en el hogar es obligatorio.', 'warn'); return false; }
+      if (_vacio(d.menores18))       { toast('Indica cuántos menores de 18 hay.', 'warn'); return false; }
+      if (_vacio(d.adultos60))       { toast('Indica cuántos adultos 60+ hay.', 'warn'); return false; }
+      if (_vacio(d.aportantes))      { toast('Selecciona cuántas personas aportan económicamente.', 'warn'); return false; }
+      if (_vacio(d.discapacidad))    { toast('Responde si alguna persona tiene discapacidad.', 'warn'); return false; }
     }
 
-    // STEP 3 — Situación socioeconómica
+    // STEP 3 — Socioeconómico
     if (state.step === 3){
-      if (_vacio(d.ingresoMensual)) { toast('Selecciona el ingreso mensual aproximado.', 'warn'); return false; }
-      if (_vacio(d.perdioEmpleo))   { toast('Indica si algún integrante perdió empleo recientemente.', 'warn'); return false; }
+      if (_vacio(d.ingresoMensual))  { toast('Selecciona el ingreso mensual aproximado.', 'warn'); return false; }
+      if (_vacio(d.perdioEmpleo))    { toast('Indica si algún integrante perdió empleo.', 'warn'); return false; }
     }
 
-    // STEP 4 — Condiciones de vivienda
+    // STEP 4 — Vivienda
     if (state.step === 4){
       if (_vacio(d.serviciosPublicos)) { toast('Marca al menos un servicio público (o "Ninguno").', 'warn'); return false; }
       if (_vacio(d.tipoVivienda))      { toast('Selecciona el tipo de vivienda.', 'warn'); return false; }
-      if (_vacio(d.materialPiso))      { toast('Selecciona el material predominante del piso.', 'warn'); return false; }
-      if (_vacio(d.materialTecho))     { toast('Selecciona el material predominante del techo.', 'warn'); return false; }
+      if (_vacio(d.materialPiso))      { toast('Selecciona el material del piso.', 'warn'); return false; }
+      if (_vacio(d.materialTecho))     { toast('Selecciona el material del techo.', 'warn'); return false; }
     }
 
     // STEP 5 — Transporte
     if (state.step === 5){
-      if (_vacio(d.medioTransporte))      { toast('Selecciona el medio de transporte que utiliza.', 'warn'); return false; }
-      if (_vacio(d.apoyoTransporte))      { toast('Indica si alguna persona recibe apoyo al transporte.', 'warn'); return false; }
-      if (_vacio(d.frecuenciaTransporte)) { toast('Indica con qué frecuencia utiliza el transporte público.', 'warn'); return false; }
+      if (_vacio(d.medioTransporte))      { toast('Selecciona el medio de transporte.', 'warn'); return false; }
+      if (_vacio(d.apoyoTransporte))      { toast('Indica si recibe apoyo al transporte.', 'warn'); return false; }
+      if (_vacio(d.frecuenciaTransporte)) { toast('Selecciona la frecuencia de uso del transporte.', 'warn'); return false; }
     }
 
     // STEP 6 — Educación
     if (state.step === 6){
-      if (_vacio(d.nivelEstudios))       { toast('Selecciona el nivel máximo de estudios.', 'warn'); return false; }
+      if (_vacio(d.nivelEstudios))       { toast('Selecciona el nivel de estudios.', 'warn'); return false; }
       if (_vacio(d.ninosNoEscuela))      { toast('Indica si hay niños o jóvenes que no asisten a la escuela.', 'warn'); return false; }
-      if (_vacio(d.apoyoEscolar))        { toast('Indica si reciben el apoyo de mochilas, uniformes y útiles escolares.', 'warn'); return false; }
-      if (_vacio(d.condicionEscuela))    { toast('Califica las condiciones de la escuela.', 'warn'); return false; }
+      if (d.ninosNoEscuela === 'Sí' && _vacio(d.ninosNoEscuelaCantidad)) {
+        toast('Indica cuántos niños no asisten a la escuela.', 'warn'); return false;
+      }
+      if (_vacio(d.apoyoEscolar))        { toast('Indica si han recibido el apoyo escolar.', 'warn'); return false; }
+      if (_vacio(d.condicionEscuela))    { toast('Selecciona la condición de la escuela.', 'warn'); return false; }
       if (_vacio(d.estanciasInfantiles)) { toast('Indica si hay estancias infantiles en su municipio.', 'warn'); return false; }
     }
 
     // STEP 7 — Salud
     if (state.step === 7){
-      if (_vacio(d.servicioSalud))        { toast('Indica si cuenta con servicio de salud público.', 'warn'); return false; }
-      if (_vacio(d.hospitalCerca))        { toast('Indica si hay un hospital o centro de salud cerca.', 'warn'); return false; }
-      if (_vacio(d.enfCronicas))          { toast('Indica si hay personas con enfermedades crónicas en el hogar.', 'warn'); return false; }
-      if (_vacio(d.problemasEmocionales)) { toast('Indica si alguna persona ha presentado problemas emocionales.', 'warn'); return false; }
-      if (_vacio(d.atencionPsicologica))  { toast('Indica si alguien recibe o necesita atención psicológica.', 'warn'); return false; }
+      if (_vacio(d.servicioSalud))         { toast('Indica si cuenta con servicio de salud público.', 'warn'); return false; }
+      if (_vacio(d.hospitalCerca))         { toast('Indica si hay hospital o centro de salud cerca.', 'warn'); return false; }
+      if (_vacio(d.enfCronicas))           { toast('Indica si hay personas con enfermedades crónicas.', 'warn'); return false; }
+      if (d.enfCronicas === 'Sí' && _vacio(d.enfCronicasCantidad)) {
+        toast('Indica cuántas personas tienen enfermedades crónicas.', 'warn'); return false;
+      }
+      if (_vacio(d.problemasEmocionales))  { toast('Indica si hay problemas emocionales en el hogar.', 'warn'); return false; }
+      if (d.problemasEmocionales === 'Sí' && _vacio(d.problemasEmocionalesCual)) {
+        toast('Selecciona cuál es el problema emocional.', 'warn'); return false;
+      }
+      if (_vacio(d.atencionPsicologica))   { toast('Indica si alguien recibe atención psicológica.', 'warn'); return false; }
     }
 
     // STEP 8 — Programas sociales
     if (state.step === 8){
-      if (_vacio(d.recibeApoyo))        { toast('Indica si reciben algún apoyo social.', 'warn'); return false; }
-      if (_vacio(d.tipoApoyoNecesario)) { toast('Selecciona al menos un tipo de apoyo que necesitan.', 'warn'); return false; }
-      if (_vacio(d.programasConocidos) && _vacio(d.programasOtro)) {
-        toast('Señala los programas sociales que conoce (marca una casilla o escribe en "Otro").', 'warn');
-        return false;
-      }
+      if (_vacio(d.recibeApoyo))           { toast('Indica si reciben algún apoyo social.', 'warn'); return false; }
+      if (_vacio(d.tipoApoyoNecesario))    { toast('Selecciona al menos un tipo de apoyo necesario.', 'warn'); return false; }
+      if (_vacio(d.programasConocidos) && _vacio(d.programasOtro))    { toast('Marca los programas sociales que conoce o escribe en "Otro".', 'warn'); return false; }
     }
 
-    // STEP 9 — Participación y necesidades
+    // STEP 9 — Participación y prioridades
     if (state.step === 9){
       const pri = d.prioridades || {};
       const usados = {};
@@ -996,18 +1082,24 @@
         usados[r] = true;
       });
       if (dup.length){ toast('No puedes repetir números en el orden de urgencia.', 'warn'); return false; }
-      if (conRango < 6){ toast('Asigna el orden de urgencia a las 6 problemáticas (del 1 al 6).', 'warn'); return false; }
-      if (_vacio(d.participaComites))    { toast('Indica si participa en comités o actividades comunitarias.', 'warn'); return false; }
-      if (_vacio(d.disposicionProyecto)) { toast('Indica si estaría dispuesto(a) a trabajar en un proyecto comunitario.', 'warn'); return false; }
+      if (conRango < 6){ toast('Debes asignar los 6 órdenes de urgencia (1 al 6).', 'warn'); return false; }
+      if (_vacio(d.participaComites))        { toast('Indica si participa en comités o actividades.', 'warn'); return false; }
+      if (_vacio(d.disposicionProyecto))     { toast('Indica si estaría dispuesto(a) a trabajar en un proyecto.', 'warn'); return false; }
+      if (_vacio(d.disposicionConApoyo))     { toast('Indica su disposición si recibiera apoyo.', 'warn'); return false; }
     }
 
     // STEP 10 — Opinión social
     if (state.step === 10){
-      if (_vacio(d.conocePresidente)) { toast('Indica si conoce a la persona titular de la presidencia de México.', 'warn'); return false; }
-      if (_vacio(d.conoceGobernador)) { toast('Indica si conoce a la persona titular de la gubernatura de Jalisco.', 'warn'); return false; }
-      if (_vacio(d.conoceBienestar))  { toast('Indica si conoce a la persona titular de la Secretaría de Bienestar.', 'warn'); return false; }
-      if (_vacio(d.conoceSSAS))       { toast('Indica si conoce a la persona titular de la SSAS.', 'warn'); return false; }
-      if (_vacio(d.gobiernoCercano))  { toast('Indica si siente que el Gobierno de Jalisco está cerca de la gente.', 'warn'); return false; }
+      if (_vacio(d.conocePresidente)) { toast('Indica si conoce a la presidencia de México.', 'warn'); return false; }
+      if (_vacio(d.conoceGobernador)) { toast('Indica si conoce a la gubernatura de Jalisco.', 'warn'); return false; }
+      if (_vacio(d.conoceBienestar))  { toast('Indica si conoce a la Secretaría de Bienestar.', 'warn'); return false; }
+      if (_vacio(d.conoceSSAS))       { toast('Indica si conoce a la SSAS.', 'warn'); return false; }
+      if (_vacio(d.gobiernoCercano))  { toast('Indica si siente que el Gobierno está cerca de la gente.', 'warn'); return false; }
+      // Las 4 calificaciones son obligatorias (los range sliders tienen valor por defecto 5)
+      if (_vacio(d.califPresidente))  { toast('Califica el trabajo de la Presidencia.', 'warn'); return false; }
+      if (_vacio(d.califGobernador))  { toast('Califica el trabajo de la Gubernatura.', 'warn'); return false; }
+      if (_vacio(d.califBienestar))   { toast('Califica el trabajo de la Secretaría de Bienestar.', 'warn'); return false; }
+      if (_vacio(d.califSSAS))        { toast('Califica el trabajo de la SSAS.', 'warn'); return false; }
     }
 
     return true;
@@ -1035,8 +1127,11 @@
   // ENVIAR ENCUESTA
   // ============================================================
   async function enviarEncuesta(){
+    // Calcular duración y registrar hora de término
     const horaTermino = ahoraLocalISO();
-    if (state.startTime){ state.data.duracionSegundos = Math.floor((Date.now() - state.startTime) / 1000); }
+    if (state.startTime){
+      state.data.duracionSegundos = Math.floor((Date.now() - state.startTime) / 1000);
+    }
     state.data.horaInicio  = state.horaInicio || '';
     state.data.horaTermino = horaTermino;
     detenerCronometro();
@@ -1047,6 +1142,7 @@
       creado_en: new Date().toISOString()
     });
     registro.id_cliente = registro.id;
+
     if (state.online && URL_API && URL_API.indexOf('TU_URL') !== 0){
       showLoader('Enviando…');
       try {
@@ -1089,6 +1185,7 @@
     } else {
       $('okFolio').style.display = 'none';
     }
+    // Mostrar tiempos
     if (registro){
       $('okHoraInicio').textContent  = soloHora(registro.horaInicio);
       $('okHoraTermino').textContent = soloHora(registro.horaTermino);
@@ -1106,7 +1203,17 @@
       body: JSON.stringify(registros)
     });
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const json = await resp.json();
+    // Leer como texto primero: si Apps Script devolvió una página de error HTML
+    // (por ejemplo, por una URL_API incorrecta), no es JSON y queremos un
+    // mensaje claro en vez de un error críptico.
+    const texto = await resp.text();
+    let json;
+    try {
+      json = JSON.parse(texto);
+    } catch (e) {
+      throw new Error('La URL de la API no respondió datos válidos. ' +
+        'Revisa que URL_API termine en /exec y que la implementación esté activa.');
+    }
     if (json.estatus !== 'ok') throw new Error(json.mensaje || 'Respuesta inválida');
     return json;
   }
@@ -1198,7 +1305,9 @@
       renderStep();
     }
   };
-  $('btnNueva').onclick = function(){ iniciarEncuesta(); };
+  $('btnNueva').onclick = function(){
+    iniciarEncuesta();
+  };
   $('btnSync').onclick = function(){ sincronizar(false); };
   $('btnSyncBar').onclick = function(){ sincronizar(false); };
   $('btnVolver').onclick = function(){
@@ -1211,6 +1320,7 @@
     }
   };
   $('pendBar').addEventListener('click', function(e){
+    // Si tocan en cualquier parte de la barra menos en el botón, mostrar detalle
     if (e.target.tagName === 'BUTTON') return;
     verPendientes();
   });
@@ -1238,7 +1348,9 @@
   // ============================================================
   // FLUJO DE PIN DEL ENCUESTADOR
   // ============================================================
-  function _validarPIN(p){ return /^\d{4,6}$/.test(String(p||'')); }
+  function _validarPIN(p){
+    return /^\d{4,6}$/.test(String(p||''));
+  }
   async function mostrarPantallaPIN(esCambio){
     $('viewPin').classList.remove('hidden');
     $('viewForm').classList.add('hidden');
@@ -1248,37 +1360,63 @@
     $('pinMsg').textContent = '';
     const input = $('pinInput');
     input.value = '';
-    if (esCambio){ $('viewPin').querySelector('h2').textContent = 'Cambiar PIN de encuestador'; }
+    if (esCambio){
+      $('viewPin').querySelector('h2').textContent = 'Cambiar PIN de encuestador';
+    }
     setTimeout(function(){ input.focus(); }, 100);
   }
   async function aceptarPIN(){
     const v = $('pinInput').value.trim();
-    if (!_validarPIN(v)){ $('pinMsg').textContent = 'El PIN debe ser de 4 a 6 dígitos.'; return; }
+    if (!_validarPIN(v)){
+      $('pinMsg').textContent = 'El PIN debe ser de 4 a 6 dígitos.';
+      return;
+    }
     const pinAnterior = state.pin;
     state.pin = v;
     await DB.cfgSet('pin', v);
+    // Actualizar el badge en header
     actualizarBadgePIN();
+    // Auditar: nuevo PIN o cambio
     const evt = pinAnterior ? 'PIN_CAMBIADO' : 'PIN_ESTABLECIDO';
     const det = pinAnterior ? ('De ' + pinAnterior + ' a ' + v) : ('Nuevo PIN: ' + v);
     enviarAuditoria(v, evt, det);
+    // Iniciar el flujo de encuesta
     iniciarEncuesta();
   }
   function actualizarBadgePIN(){
     const b = $('pinBadge'), t = $('pinTxt');
-    if (state.pin){ b.classList.remove('hidden'); t.textContent = state.pin; }
-    else           { b.classList.add('hidden'); }
+    if (state.pin){
+      b.classList.remove('hidden');
+      t.textContent = state.pin;
+    } else {
+      b.classList.add('hidden');
+    }
   }
+  /* Envía evento de auditoría al backend. Si no hay conexión, lo guarda como
+     pendiente de auditoría (no se pierde). */
   async function enviarAuditoria(pin, evento, detalle){
-    const ev = { pin: pin||'', evento: evento, detalle: detalle||'', userAgent: (navigator.userAgent||'').substring(0,300), timestamp: ahoraLocalISO() };
+    const ev = {
+      pin: pin || '',
+      evento: evento,
+      detalle: detalle || '',
+      userAgent: (navigator.userAgent || '').substring(0,300),
+      timestamp: ahoraLocalISO()
+    };
     if (!state.online || !URL_API || URL_API.indexOf('TU_URL') === 0){
+      // Encolarlo
       const arr = (await DB.cfgGet('audit_pend')) || { v: [] };
       arr.v.push(ev);
       await DB.cfgSet('audit_pend', arr.v);
       return;
     }
     try {
-      await fetch(URL_API, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ _audit: true, eventos: [ev] }) });
+      await fetch(URL_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ _audit: true, eventos: [ev] })
+      });
     } catch(e){
+      // Guardar como pendiente si falla
       const cfg = (await DB.cfgGet('audit_pend')) || { v: [] };
       const arr = Array.isArray(cfg) ? cfg : (cfg.v || []);
       arr.push(ev);
@@ -1291,9 +1429,13 @@
     const arr = cfg && cfg.v ? cfg.v : (Array.isArray(cfg) ? cfg : []);
     if (!arr || !arr.length) return;
     try {
-      await fetch(URL_API, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ _audit: true, eventos: arr }) });
+      await fetch(URL_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ _audit: true, eventos: arr })
+      });
       await DB.cfgSet('audit_pend', []);
-    } catch(e){}
+    } catch(e){ /* lo reintentaremos después */ }
   }
   function iniciarEncuesta(){
     state.data = {};
@@ -1309,9 +1451,16 @@
     renderStep();
   }
 
+  // Listeners de la pantalla de PIN
   $('btnPinOk').addEventListener('click', aceptarPIN);
-  $('pinInput').addEventListener('keydown', function(e){ if (e.key === 'Enter') aceptarPIN(); });
-  $('pinInput').addEventListener('input', function(){ this.value = this.value.replace(/\D/g, '').substring(0, 6); });
+  $('pinInput').addEventListener('keydown', function(e){
+    if (e.key === 'Enter') aceptarPIN();
+  });
+  // Solo permitir dígitos
+  $('pinInput').addEventListener('input', function(){
+    this.value = this.value.replace(/\D/g, '').substring(0, 6);
+  });
+  // Click en el badge del PIN → cambiar PIN
   $('pinBadge').addEventListener('click', function(){
     if (confirm('¿Cambiar PIN de encuestador? La encuesta actual se descartará.')) {
       detenerCronometro();
@@ -1328,6 +1477,7 @@
   (async function arranque(){
     actualizarBadge();
     await refrescarPendientes();
+    // ¿Hay PIN guardado?
     const cfgPin = await DB.cfgGet('pin');
     if (cfgPin && cfgPin.v && _validarPIN(cfgPin.v)){
       state.pin = cfgPin.v;
@@ -1336,7 +1486,10 @@
     } else {
       mostrarPantallaPIN(false);
     }
-    if (state.online){ sincronizar(true); sincronizarAuditoria(); }
+    if (state.online) {
+      sincronizar(true);
+      sincronizarAuditoria();
+    }
   })();
 </script>
 </body>
