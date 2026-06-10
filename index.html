@@ -116,6 +116,14 @@
   .nav-btns{display:flex;gap:10px;margin-top:16px}
   .nav-btns .btn{flex:1}
 
+  /* Foto */
+  .photo-area{border:2px dashed var(--border);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:.2s;background:var(--surface-2)}
+  .photo-area:hover{border-color:var(--magenta);background:rgba(194,75,150,.06)}
+  .photo-area.has{border-style:solid;border-color:var(--magenta);padding:8px;background:var(--surface)}
+  .photo-area img{max-width:100%;max-height:240px;border-radius:8px;display:block;margin:0 auto}
+  .photo-area .icon{font-size:42px;margin-bottom:8px;display:block}
+  .photo-area .hint{font-size:12px;color:var(--text-dim);margin-top:8px}
+
   /* GPS */
   .gps-box{background:rgba(194,75,150,.08);border:1px solid var(--magenta);border-radius:8px;padding:10px 12px;font-size:12px;display:flex;align-items:center;gap:8px;color:var(--text)}
   .gps-box b{color:var(--naranja)}
@@ -462,7 +470,14 @@
 
   // ----- STEP 0: GPS — OBLIGATORIO -----
   function renderStep0(host){
-    host.innerHTML = card('📍 Ubicación GPS <span style="color:var(--naranja);font-size:11px;font-weight:400">(obligatoria)</span>',
+    host.innerHTML = card('📸 Foto de la fachada del hogar', `
+      <div class="photo-area" id="photoArea">
+        <span class="icon">📷</span>
+        <div>Toca para tomar la foto</div>
+        <div class="hint">Se usará la cámara trasera. La foto será comprimida automáticamente.</div>
+      </div>
+      <input type="file" id="fotoInput" accept="image/*" capture="environment" style="display:none">
+    `) + card('📍 Ubicación GPS <span style="color:var(--naranja);font-size:11px;font-weight:400">(obligatoria)</span>',
       '<div style="background:rgba(240,129,18,.1);border:1px solid var(--naranja);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--naranja);margin-bottom:10px;display:flex;align-items:flex-start;gap:8px">'+
         '<span style="font-size:16px;flex-shrink:0">⚠️</span>'+
         '<span>La ubicación GPS es <b>obligatoria</b>. Sin ella no es posible georreferenciar la encuesta. <b>Activa el GPS y da permiso antes de continuar.</b></span>'+
@@ -472,6 +487,26 @@
       '<button class="btn btn-acc btn-full" id="btnGps" style="margin-top:10px">🔄 Volver a intentar GPS</button>'+
       '<small class="help" style="margin-top:8px">Si el navegador bloquea la ubicación: Configuración → Permisos → Ubicación → Permitir.</small>'
     );
+    // Foto de fachada
+    const area = $('photoArea'), inp = $('fotoInput');
+    area.onclick = () => inp.click();
+    inp.onchange = e => {
+      const f = e.target.files[0];
+      inp.value = '';
+      if (!f) return;
+      comprimirImagen(f, 1024, 0.7).then(b64 => {
+        state.data.fotoBase64 = b64;
+        area.classList.add('has');
+        area.innerHTML = '<img src="' + b64 + '" alt="fachada"><div class="hint">Toca para cambiar la foto</div>';
+        area.onclick = () => inp.click();
+      }).catch(err => { toast('Error procesando imagen: ' + err.message, 'err'); });
+    };
+    if (state.data.fotoBase64) {
+      area.classList.add('has');
+      area.innerHTML = '<img src="' + state.data.fotoBase64 + '" alt="fachada"><div class="hint">Toca para cambiar la foto</div>';
+      area.onclick = () => inp.click();
+    }
+
     $('btnGps').onclick = obtenerGPS;
     if (state.data.latitud && state.data.longitud){
       _mostrarGPSOk(state.data.latitud, state.data.longitud, null);
@@ -487,6 +522,26 @@
     box.style.borderColor = 'var(--success)';
     if (txt) txt.innerHTML = '✅ Lat: <b>'+lat+'</b> · Lng: <b>'+lng+'</b>'+(accuracy?' · ±'+Math.round(accuracy)+' m':'');
     if (est){ est.style.display='block'; est.innerHTML='<span style="color:var(--success);font-weight:600">✓ Ubicación capturada. Puedes continuar.</span>'; }
+  }
+  function comprimirImagen(file, maxLado, q) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          let w = img.width, h = img.height;
+          if (w > h && w > maxLado) { h = h*(maxLado/w); w = maxLado; }
+          else if (h > maxLado) { w = w*(maxLado/h); h = maxLado; }
+          const c = document.createElement('canvas'); c.width = w; c.height = h;
+          c.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(c.toDataURL('image/jpeg', q));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
   }
   function obtenerGPS(){
     const box = $('gpsBox'), txt = $('gpsTxt'), est = $('gpsEstado');
@@ -847,8 +902,9 @@
   function validarStep(){
     const d = state.data;
 
-    // STEP 0 — GPS obligatorio
+    // STEP 0 — Foto de fachada + GPS obligatorio
     if (state.step === 0){
+      if (!d.fotoBase64) { toast('Por favor toma la foto de la fachada antes de continuar.', 'warn'); return false; }
       if (!d.latitud || !d.longitud){
         toast('La ubicación GPS es obligatoria.\n• Activa el GPS del dispositivo\n• Da permiso de ubicación al navegador\n• Pulsa "Volver a intentar GPS" y espera la confirmación verde ✓', 'warn');
         return false;
